@@ -3,6 +3,8 @@ const express = require('express');
 const mysql = require('mysql2');
 // Require inquirer
 const inquirer = require('inquirer');
+//Require Console.Table --Cleaner table in console log removes index.
+const cTable = require('console.table');
 
 
 const PORT = process.env.PORT || 3001;
@@ -13,7 +15,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // Connect to database
-const db = mysql.createConnection(
+const connection = mysql.createConnection(
   {
     host: '127.0.0.1',
     // MySQL username,
@@ -40,77 +42,80 @@ const startPrompt = () => {
             switch (doNext) { 
                 case 'View all Employees': { 
                     viewEmployees();
-                    startPrompt();
                     break
                 }
                 case 'Add Employees': { 
                     addEmployees();
-                    startPrompt();
                     break
                 }
                 case 'Update Employee Role': { 
                     updateEmployeeRole();
-                    startPrompt();
                     break
                 }
                 case 'View All Roles': { 
                     viewRoles();
-                    startPrompt();
                     break
                 }
                 case 'Add Role': {
                     addRole();
-                    startPrompt();
                     break
                  }
                 case 'View all Departments': {
                     viewDepartment();
-                    startPrompt();
                     break
                 }
                 case 'Add Department': {
                     addDepartment();
-                    startPrompt();
                     break
                 }
                 case 'Update Employee Managers': {
                     updateEmployeeManager();
-                    startPrompt();
                     break
                 }
                 case 'View Employees by Manager': {
                     viewEmployeesByManager();
-                    startPrompt();
                     break
                 }
                 case 'View Employees by Department': { 
                     viewEmployeesByDepartment();
-                    startPrompt();
                     break
                 }
                 case 'Delete Departments, Roles and Employees': { 
                     deleteDepartmentRoleEmployee();
-                    startPrompt();
                     break
                 }
                 case 'View Department Budget': {
                     viewDepartmentBudget();
-                    startPrompt();
                     break
                 }
                 case 'Quit': {
                     Quit();
-                    startPrompt();
                     break
                 }
                     
             }
         } )
 }
+// Run Inquirer Prompts
 startPrompt();
 //function to create a query to view employees
 viewEmployees = () => { 
-    console.log('View Employees Test')
+    const sql = `SELECT 
+    employee.first_name,
+    employee.last_name,
+    role.title,
+    department.name AS department,
+    role.salary
+  FROM employee employee
+  INNER JOIN role role ON employee.role_id = role.id
+  INNER JOIN department department ON role.department_id = department.id;`; 
+  
+    connection.promise().query(sql)
+        .then(([rows, fields]) => {
+        console.log(`\nThere are Currently ${rows.length} Employees\n`)
+        console.table(rows);
+    })
+        .catch(console.log)
 }
 //function to add employees to the employee table
 addEmployees = () => { 
@@ -122,7 +127,20 @@ updateEmployeeRole = () => {
 }
 //function to create a query to view all the roles
 viewRoles = () => { 
-    console.log('View Roles Test')
+    const sql = `SELECT 
+    role.title,
+    department.name AS department,
+    role.salary
+  FROM employee employee
+  INNER JOIN role role ON employee.role_id = role.id
+  INNER JOIN department department ON role.department_id = department.id;`; 
+  
+    connection.promise().query(sql)
+        .then(([rows, fields]) => {
+        console.log(`\nThere are Currently ${rows.length} Roles Available\n`)
+        console.table(rows);
+    })
+        .catch(console.log)
 }
 //function to add a role to the roles table
 addRole = () => { 
@@ -167,5 +185,5 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+//   console.log(`Server running on port ${PORT}`);
 });

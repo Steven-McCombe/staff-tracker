@@ -1,13 +1,22 @@
 -- Query to create a table showing first name, last name, title, department and salary.
--- SELECT 
---   employee.first_name,
---   employee.last_name,
---   role.title,
---   department.name AS department,
---   role.salary
--- FROM employee employee
--- INNER JOIN role role ON employee.role_id = role.id
--- INNER JOIN department department ON role.department_id = department.id;
+SELECT 
+  employee.first_name,
+  employee.last_name,
+  role.title,
+  department.name AS department,
+  role.salary
+FROM employee employee
+INNER JOIN role role ON employee.role_id = role.id
+INNER JOIN department department ON role.department_id = department.id;
+
+-- Query to view all roles
+SELECT 
+  role.title,
+  department.name AS department,
+  role.salary
+FROM employee employee
+INNER JOIN role role ON employee.role_id = role.id
+INNER JOIN department department ON role.department_id = department.id;
 
 -- Query to select all from departments;
 -- SELECT * from department;
