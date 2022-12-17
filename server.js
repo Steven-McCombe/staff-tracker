@@ -119,7 +119,19 @@ viewEmployees = () => {
 }
 //function to add employees to the employee table
 addEmployees = () => { 
-    console.log('Add Employees Test')
+
+    //TODO add an inquirer prompt that will allow the user to input these fields and store it in an array. 
+
+    let addEmployeeArray = ["'John'", "'Doe'", "NULL", "1",]
+    
+    const sql = `INSERT INTO employee (first_name, last_name, manager_id, role_id)
+    VALUES (${addEmployeeArray[0]}, ${addEmployeeArray[1]}, ${addEmployeeArray[2]}, ${addEmployeeArray[3]});`; 
+  
+    connection.promise().query(sql)
+        .then(([rows, fields]) => {
+        console.log(`\nEmployee information has been added to the employee table:\n`)
+    })
+        .catch(console.log)
 }
 //Function to update the role of a selected employee
 updateEmployeeRole = () => { 
@@ -148,7 +160,14 @@ addRole = () => {
 }
 //function to create a query to view departments
 viewDepartment = () => { 
-    console.log('View Department Test')
+    const sql = `SELECT * from department;`; 
+  
+    connection.promise().query(sql)
+        .then(([rows, fields]) => {
+        console.log(`\nThere are Currently ${rows.length} Departments\n`)
+        console.table(rows);
+    })
+        .catch(console.log)
 }
 //function to add a department to the department table
 addDepartment = () => {
@@ -160,7 +179,18 @@ updateEmployeeManager = () => {
 }
 //function to create a query that views employees by manager only
 viewEmployeesByManager = () => { 
-    console.log('View Employees by manager Test')
+    const sql = `SELECT e1.first_name AS employee_first_name, e1.last_name AS employee_last_name, 
+    e2.first_name AS manager_first_name, e2.last_name AS manager_last_name
+FROM employee e1
+JOIN employee e2 ON e1.manager_id = e2.id
+WHERE e1.manager_id IS NOT NULL;`; 
+  
+    connection.promise().query(sql)
+        .then(([rows, fields]) => {
+        console.log(`\n${rows.length} Employees Currently have a Manager\n`)
+        console.table(rows);
+    })
+        .catch(console.log)
 }
 //function to create a query that views employees by department
 viewEmployeesByDepartment = () => { 
@@ -172,7 +202,20 @@ deleteDepartmentRoleEmployee = () => {
  }
 //function to view the department budget for a selected department.
 viewDepartmentBudget = () => { 
-    console.log('View Department budget Test')
+
+    const sql = `SELECT d.name AS department_name, SUM(r.salary) AS total_budget
+    FROM employee e
+    JOIN role r ON e.role_id = r.id
+    JOIN department d ON r.department_id = d.id
+    GROUP BY d.name;
+    `; 
+  
+    connection.promise().query(sql)
+        .then(([rows, fields]) => {
+        console.log(`\nBelow is the total budget for each Department.\n`)
+        console.table(rows);
+    })
+        .catch(console.log)
 }
 //function to quit the app
 Quit = () => { 
