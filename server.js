@@ -179,7 +179,7 @@ viewRoles = () => {
   
     connection.promise().query(viewRoleSQL)
         .then(([rows, fields]) => {
-        console.log(`\nThere are Currently ${rows.length} Roles Available\n`)
+        console.log(`\nThere are Currently ${rows.length} Roles with active employees\n`)
         console.table(rows);
     })
         .catch(console.log)
@@ -212,7 +212,6 @@ connection.promise().query(returnDepartmentSQL)
             .then((data) => {
                 // Deconstruct the prompt data to get the users choice
                 const { newRoleName, newRoleSalary, newRoleDepartment } = data;
-                console.log(newRoleName + newRoleSalary + newRoleDepartment)
                 //SQL to add a new role with ? to prevent sql injection
                 const addRoleSQL = `INSERT INTO role (title, salary, department_id)
                 VALUES (?, ?, ?);`;
@@ -239,8 +238,28 @@ viewDepartment = () => {
 }
 //function to add a department to the department table
 addDepartment = () => {
-    console.log('Add Department Test')
- }
+
+    inquirer.prompt([{
+        type: 'input',
+        name: 'newDepartmentName',
+        message: 'What is the name of the Department?'
+    },])
+        .then((data) => {
+            // Deconstruct the prompt data to get the users choice
+            const { newDepartmentName } = data;
+            //SQL to add a new role with ? to prevent sql injection
+            const addDepartmentSQL = `INSERT INTO department (name)
+                    VALUES (?);`;
+            connection.promise().query(addDepartmentSQL, [newDepartmentName])
+                .then(() => {
+                    console.log(`\nNew Department has been added:\n`);
+                    viewDepartment()
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        });
+}
 //function to update and employees manager
 updateEmployeeManager = () => { 
     console.log('Update Employee Manager Test')
@@ -262,11 +281,10 @@ WHERE e1.manager_id IS NOT NULL;`;
 }
 //function to create a query that views employees by department
 viewEmployeesByDepartment = () => { 
-    console.log('View Employees by Department Test')
+
 }
 //function to delete a department, role or employee.
 deleteDepartmentRoleEmployee = () => {
-    console.log('Delete Department, Role or Employee.')
  }
 //function to view the department budget for a selected department.
 viewDepartmentBudget = () => { 
