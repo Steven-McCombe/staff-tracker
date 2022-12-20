@@ -126,6 +126,7 @@ addEmployees = () => {
     const returnRoleSQL = `Select * FROM Role`;
     connection.promise().query(returnRoleSQL)
         .then(([rows, fields]) => {
+            console.table(rows)
             const returnRoles = rows.map(({ id, title }) => ({ name: title, value: id }));
             inquirer.prompt([{
                 type: 'input',
@@ -163,7 +164,44 @@ addEmployees = () => {
 
 //Function to update the role of a selected employee
 updateEmployeeRole = () => {
-    
+    //sql query to return the employee first name, last name, role title, role id and employee id. 
+    const returnEmployeeSQL = `SELECT employee.first_name, employee.last_name, role.title, employee.id, employee.role_id FROM employee JOIN role ON employee.role_id = role.id;`;
+    connection.promise().query(returnEmployeeSQL)
+        .then(([rows, fields]) => {
+            console.table(rows)
+            //return information on the employee
+            const returnEmployees = rows.map(({ id, first_name, last_name, title }) => ({ name: first_name + " " + last_name + " " + title, value: id }));
+            //return information on the employees role
+            const returnRoles = rows.map(({ role_id, title }) => ({ name: title, value: role_id }));
+            inquirer.prompt([{
+                type: 'list',
+                name: 'updateEmployeeRoleName',
+                message: 'Select the employee whos title you would like to update?',
+                choices: returnEmployees
+            },
+            {
+                type: 'list',
+                name: 'updateRoleTitle',
+                message: 'What is the employees new title?',
+                choices: returnRoles
+            }])
+                .then((data) => {
+                    // Deconstruct the prompt data to get the users choice
+                    const { updateEmployeeRoleName, updateRoleTitle } = data;
+                    console.log(data)
+                    //SQL to add an update the role of an employee with ? to prevent sql injection
+                    const updateRoleSQL = `UPDATE employee
+                    SET role_id = ?
+                    WHERE id = ?;`;
+                    connection.promise().query(updateRoleSQL, [updateRoleTitle, updateEmployeeRoleName])
+                        .then(() => {
+                            console.log(`\nEmployee Role has be updated\n`);
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                        });
+                });
+        });
 };
 
 
