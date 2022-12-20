@@ -118,28 +118,51 @@ viewEmployees = () => {
         .catch(console.log)
 }
 //function to add employees to the employee table
-addEmployees = () => { 
-
-    //TODO add an inquirer prompt that will allow the user to input these fields and store it in an array. 
-
-    let addEmployeeArray = ["'John'", "'Doe'", "NULL", "1",]
-    
-    const sql = `INSERT INTO employee (first_name, last_name, manager_id, role_id)
-    VALUES (${addEmployeeArray[0]}, ${addEmployeeArray[1]}, ${addEmployeeArray[2]}, ${addEmployeeArray[3]});`; 
-  
-    connection.promise().query(sql)
+addEmployees = () => {
+//Return all Roles then add the data to the inquirer prompt
+    const returnRoleSQL = `Select * FROM Role`;
+    connection.promise().query(returnRoleSQL)
         .then(([rows, fields]) => {
-        console.log(`\nEmployee information has been added to the employee table:\n`)
-    })
-        .catch(console.log)
-}
+            const returnRoles = rows.map(({ id, title }) => ({ name: title, value: id }));
+            inquirer.prompt([{
+                type: 'input',
+                name: 'newEmployeeFirstName',
+                message: 'What is the employees first name?'
+            },
+            {
+                type: 'input',
+                name: 'newEmployeeLastName',
+                message: 'What is the employees last name?'
+            },
+            {
+                type: 'list',
+                name: 'newEmployeeRole',
+                message: 'What is the employees role?',
+                choices: returnRoles
+            }])
+                .then((data) => {
+                    // Deconstruct the prompt data to get the users choice
+                    const { newEmployeeFirstName, newEmployeeLastName, newEmployeeRole } = data;
+                    //SQL to add an employee with ? to prevent sql injection
+                    const addEmployeeSQL = `INSERT INTO employee (first_name, last_name, manager_id, role_id)
+            VALUES (?, ?, NULL, ?);`;
+                    connection.promise().query(addEmployeeSQL, [newEmployeeFirstName, newEmployeeLastName, newEmployeeRole])
+                        .then(() => {
+                            console.log(`\nEmployee information has been added to the employee table:\n`);
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                        });
+                });
+        });
+};
 //Function to update the role of a selected employee
 updateEmployeeRole = () => { 
     console.log('Update Employee Role Test')
 }
 //function to create a query to view all the roles
 viewRoles = () => { 
-    const sql = `SELECT 
+    const viewRoleSQL = `SELECT 
     role.title,
     department.name AS department,
     role.salary
@@ -147,7 +170,7 @@ viewRoles = () => {
   INNER JOIN role role ON employee.role_id = role.id
   INNER JOIN department department ON role.department_id = department.id;`; 
   
-    connection.promise().query(sql)
+    connection.promise().query(viewRoleSQL)
         .then(([rows, fields]) => {
         console.log(`\nThere are Currently ${rows.length} Roles Available\n`)
         console.table(rows);
@@ -160,9 +183,9 @@ addRole = () => {
 }
 //function to create a query to view departments
 viewDepartment = () => { 
-    const sql = `SELECT * from department;`; 
+    const viewDepartmentSQL = `SELECT * from department;`; 
   
-    connection.promise().query(sql)
+    connection.promise().query(viewDepartmentSQL)
         .then(([rows, fields]) => {
         console.log(`\nThere are Currently ${rows.length} Departments\n`)
         console.table(rows);
@@ -179,13 +202,13 @@ updateEmployeeManager = () => {
 }
 //function to create a query that views employees by manager only
 viewEmployeesByManager = () => { 
-    const sql = `SELECT e1.first_name AS employee_first_name, e1.last_name AS employee_last_name, 
+    const viewEmployeesByManagerSQL = `SELECT e1.first_name AS employee_first_name, e1.last_name AS employee_last_name, 
     e2.first_name AS manager_first_name, e2.last_name AS manager_last_name
 FROM employee e1
 JOIN employee e2 ON e1.manager_id = e2.id
 WHERE e1.manager_id IS NOT NULL;`; 
   
-    connection.promise().query(sql)
+    connection.promise().query(viewEmployeesByManagerSQL)
         .then(([rows, fields]) => {
         console.log(`\n${rows.length} Employees Currently have a Manager\n`)
         console.table(rows);
@@ -203,14 +226,14 @@ deleteDepartmentRoleEmployee = () => {
 //function to view the department budget for a selected department.
 viewDepartmentBudget = () => { 
 
-    const sql = `SELECT d.name AS department_name, SUM(r.salary) AS total_budget
+    const viewDepartmentBudgetSQL = `SELECT d.name AS department_name, SUM(r.salary) AS total_budget
     FROM employee e
     JOIN role r ON e.role_id = r.id
     JOIN department d ON r.department_id = d.id
     GROUP BY d.name;
     `; 
   
-    connection.promise().query(sql)
+    connection.promise().query(viewDepartmentBudgetSQL)
         .then(([rows, fields]) => {
         console.log(`\nBelow is the total budget for each Department.\n`)
         console.table(rows);
