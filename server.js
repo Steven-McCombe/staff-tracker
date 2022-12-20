@@ -298,9 +298,45 @@ addDepartment = () => {
                 });
         });
 }
-//function to update and employees manager
+//function to update an employees manager
+//todo code does not seem to be working 100% needs fixed
 updateEmployeeManager = () => { 
-    console.log('Update Employee Manager Test')
+    const returnEmployeesSQL = `SELECT * FROM employee`;
+    connection.promise().query(returnEmployeesSQL)
+        .then(([rows, fields]) => {
+            //return information on the employee
+            const returnEmployee = rows.map(({ id, first_name, last_name }) => ({ name: first_name + " " + last_name, value: id }));
+            //return information on the employees role
+            const returnManager = rows.map((({ id, first_name, last_name }) => ({ name: first_name + " " + last_name, value: id })));
+            inquirer.prompt([{
+                type: 'list',
+                name: 'updateEmployeeManager',
+                message: 'Select the employee whos manager you would like to update?',
+                choices: returnEmployee
+            },
+            {
+                type: 'list',
+                name: 'selectNewManager',
+                message: 'Who is the employees new manager?',
+                choices: returnManager
+            }])
+                .then((data) => {
+                    // Deconstruct the prompt data to get the users choice
+                    const { returnEmployee, returnManager } = data;
+                    console.log(data)
+                    //SQL to add an update the manager of an employee with ? to prevent sql injection
+                    const updateManagerSQL = `UPDATE employee
+                    SET manager_id = ?
+                    WHERE id = ?;`;
+                    connection.promise().query(updateManagerSQL, [returnManager, returnEmployee])
+                        .then(() => {
+                            console.log(`\nEmployee Role has be updated\n`);
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                        });
+                });
+        });
 }
 //function to create a query that views employees by manager only
 viewEmployeesByManager = () => { 
