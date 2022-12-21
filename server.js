@@ -33,7 +33,7 @@ const startPrompt = () => {
         type: 'list',
         name: 'doNext',
         message: 'What would you like to do?',
-        choices: ['View all Employees','Add Employees', 'Update Employee Role', 'View All Roles', 'Add Role', 'View all Departments', 'Add Department', 'Update Employee Managers', 'View Employees by Manager', 'View Employees by Department', 'Delete Departments, Roles and Employees', 'View Department Budget', 'Quit']
+        choices: ['View all Employees','View All Roles','View all Departments','View Employees by Manager', 'View Employees by Department', 'View Department Budget','Add Employees','Add Role',  'Add Department',  'Update Employee Role', 'Update Employee Managers',  'Delete Employee', 'Delete Role', 'Delete Department',  'Quit']
     }])
         .then((data) => { 
             //Deconstruct the prompt data to get the users choice
@@ -44,32 +44,12 @@ const startPrompt = () => {
                     viewEmployees();
                     break
                 }
-                case 'Add Employees': { 
-                    addEmployees();
-                    break
-                }
-                case 'Update Employee Role': { 
-                    updateEmployeeRole();
-                    break
-                }
                 case 'View All Roles': { 
                     viewRoles();
                     break
                 }
-                case 'Add Role': {
-                    addRole();
-                    break
-                 }
                 case 'View all Departments': {
                     viewDepartment();
-                    break
-                }
-                case 'Add Department': {
-                    addDepartment();
-                    break
-                }
-                case 'Update Employee Managers': {
-                    updateEmployeeManager();
                     break
                 }
                 case 'View Employees by Manager': {
@@ -80,16 +60,44 @@ const startPrompt = () => {
                     viewEmployeesByDepartment();
                     break
                 }
-                case 'Delete Departments, Roles and Employees': { 
-                    deleteDepartmentRoleEmployee();
-                    break
-                }
                 case 'View Department Budget': {
                     viewDepartmentBudget();
                     break
                 }
+                case 'Add Employees': { 
+                    addEmployees();
+                    break
+                }
+                case 'Add Role': {
+                    addRole();
+                    break
+                 }
+                case 'Add Department': {
+                    addDepartment();
+                    break
+                }
+                case 'Update Employee Role': { 
+                    updateEmployeeRole();
+                    break
+                }
+                case 'Update Employee Managers': {
+                    updateEmployeeManager();
+                    break
+                }
+                case 'Delete Employee': { 
+                    deleteEmployee();
+                    break
+                }
+                case 'Delete Role': { 
+                    deleteRole();
+                    break
+                }
+                case 'Delete Department': { 
+                    deleteDepartment();
+                    break
+                }
                 case 'Quit': {
-                    Quit();
+                    connection.end()
                     break
                 }
                     
@@ -114,7 +122,8 @@ viewEmployees = () => {
     connection.promise().query(sql)
         .then(([rows, fields]) => {
         console.log(`\nThere are Currently ${rows.length} Employees\n`)
-        console.table(rows);
+            console.table(rows);
+            startPrompt();
     })
         .catch(console.log)
 }
@@ -126,7 +135,6 @@ addEmployees = () => {
     const returnRoleSQL = `Select * FROM Role`;
     connection.promise().query(returnRoleSQL)
         .then(([rows, fields]) => {
-            console.table(rows)
             const returnRoles = rows.map(({ id, title }) => ({ name: title, value: id }));
             inquirer.prompt([{
                 type: 'input',
@@ -153,6 +161,7 @@ addEmployees = () => {
                     connection.promise().query(addEmployeeSQL, [newEmployeeFirstName, newEmployeeLastName, newEmployeeRole])
                         .then(() => {
                             console.log(`\nEmployee information has been added to the employee table:\n`);
+                            startPrompt();
                         })
                         .catch((error) => {
                             console.error(error);
@@ -196,6 +205,7 @@ updateEmployeeRole = () => {
                     connection.promise().query(updateRoleSQL, [updateRoleTitle, updateEmployeeRoleName])
                         .then(() => {
                             console.log(`\nEmployee Role has be updated\n`);
+                            startPrompt();
                         })
                         .catch((error) => {
                             console.error(error);
@@ -218,7 +228,8 @@ viewRoles = () => {
     connection.promise().query(viewRoleSQL)
         .then(([rows, fields]) => {
         console.log(`\nThere are Currently ${rows.length} Roles with active employees\n`)
-        console.table(rows);
+            console.table(rows);
+            startPrompt();
     })
         .catch(console.log)
 }
@@ -256,6 +267,7 @@ connection.promise().query(returnDepartmentSQL)
                 connection.promise().query(addRoleSQL, [newRoleName, newRoleSalary, newRoleDepartment])
                     .then(() => {
                         console.log(`\nNew Role has been added:\n`);
+                        startPrompt();
                     })
                     .catch((error) => {
                         console.error(error);
@@ -270,7 +282,8 @@ viewDepartment = () => {
     connection.promise().query(viewDepartmentSQL)
         .then(([rows, fields]) => {
         console.log(`\nThere are Currently ${rows.length} Departments\n`)
-        console.table(rows);
+            console.table(rows);
+            startPrompt();
     })
         .catch(console.log)
 }
@@ -292,6 +305,7 @@ addDepartment = () => {
                 .then(() => {
                     console.log(`\nNew Department has been added:\n`);
                     viewDepartment()
+                    startPrompt();
                 })
                 .catch((error) => {
                     console.error(error);
@@ -331,6 +345,7 @@ updateEmployeeManager = () => {
                     connection.promise().query(updateManagerSQL, [returnManager, returnEmployee])
                         .then(() => {
                             console.log(`\nEmployee Role has be updated\n`);
+                            startPrompt();
                         })
                         .catch((error) => {
                             console.error(error);
@@ -349,7 +364,8 @@ WHERE e1.manager_id IS NOT NULL;`;
     connection.promise().query(viewEmployeesByManagerSQL)
         .then(([rows, fields]) => {
         console.log(`\n${rows.length} Employees Currently have a Manager\n`)
-        console.table(rows);
+            console.table(rows);
+            startPrompt();
     })
         .catch(console.log)
 }
@@ -365,14 +381,70 @@ viewEmployeesByDepartment = () => {
     connection.promise().query(viewEmployeesByDepartmentSQL)
         .then(([rows, fields]) => {
         console.log(`\nViewing employees by department.\n`)
-        console.table(rows);
+            console.table(rows);
+            startPrompt();
     })
         .catch(console.log)
 }
-//todo function to delete a department, role or employee.
-deleteDepartmentRoleEmployee = () => {
-  
+//function to delete a employee.
+deleteEmployee = () => {
+    const returnEmployeeSQL = `SELECT * FROM employee`;
+    connection.promise().query(returnEmployeeSQL)
+        .then(([rows, fields]) => {
+            //return information on the employee
+            const returnEmployees = rows.map(({ id, first_name, last_name }) => ({ name: first_name + " " + last_name, value: id }));
+            inquirer.prompt([{
+                type: 'list',
+                name: 'deleteEmployee',
+                message: 'Select the employee you would like to delete?',
+                choices: returnEmployees
+            },])
+                .then((data) => {
+                    // Deconstruct the prompt data to get the users choice
+                    const { deleteEmployee } = data;
+                    //SQL to add delete an employee with ? to prevent sql injection
+                    const deleteEmployeeSQL = `DELETE FROM employee WHERE id = ?;`;
+                    connection.promise().query(deleteEmployeeSQL, [deleteEmployee])
+                        .then(() => {
+                            console.log(`\nEmployee has been Deleted\n`);
+                            startPrompt();
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                        });
+                });
+        });
  }
+//function to delete a role.
+deleteRole = () => {
+    const returnRolesSQL = `SELECT * FROM role`;
+    connection.promise().query(returnRolesSQL)
+        .then(([rows, fields]) => {
+            //return information on the roles
+            const returnRoles = rows.map(({ id, title}) => ({ name: title, value: id }));
+            inquirer.prompt([{
+                type: 'list',
+                name: 'deleteRole',
+                message: 'Select the role you would like to delete?',
+                choices: returnRoles
+            },])
+                .then((data) => {
+                    // Deconstruct the prompt data to get the users choice
+                    const { deleteRole } = data;
+                    //SQL to add an update the role of an employee with ? to prevent sql injection
+                    const deleteRoleSQL = `DELETE FROM role WHERE id = ?;`;
+                    connection.promise().query(deleteRoleSQL, [deleteRole])
+                        .then(() => {
+                            console.log(`\nRole has been Deleted\n`);
+                            startPrompt();
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                        });
+                });
+        });
+ }
+
 //function to view the department budget for a selected department.
 viewDepartmentBudget = () => { 
 
@@ -386,13 +458,10 @@ viewDepartmentBudget = () => {
     connection.promise().query(viewDepartmentBudgetSQL)
         .then(([rows, fields]) => {
         console.log(`\nBelow is the total budget for each Department.\n`)
-        console.table(rows);
+            console.table(rows);
+            startPrompt();
     })
         .catch(console.log)
-}
-//todo function to quit the app
-Quit = () => { 
-    console.log('Quit Test')
 }
 
 // Default response for any other request (Not Found)
