@@ -353,12 +353,25 @@ WHERE e1.manager_id IS NOT NULL;`;
     })
         .catch(console.log)
 }
-//function to create a query that views employees by department
+// function to create a query that views employees by department
 viewEmployeesByDepartment = () => { 
-
+    const viewEmployeesByDepartmentSQL = `SELECT e.first_name, e.last_name, d.name AS department
+    FROM employee e
+    INNER JOIN role r ON e.role_id = r.id
+    INNER JOIN department d ON r.department_id = d.id
+    ORDER BY d.name;
+    `; 
+  
+    connection.promise().query(viewEmployeesByDepartmentSQL)
+        .then(([rows, fields]) => {
+        console.log(`\nViewing employees by department.\n`)
+        console.table(rows);
+    })
+        .catch(console.log)
 }
-//function to delete a department, role or employee.
+//todo function to delete a department, role or employee.
 deleteDepartmentRoleEmployee = () => {
+  
  }
 //function to view the department budget for a selected department.
 viewDepartmentBudget = () => { 
@@ -377,7 +390,7 @@ viewDepartmentBudget = () => {
     })
         .catch(console.log)
 }
-//function to quit the app
+//todo function to quit the app
 Quit = () => { 
     console.log('Quit Test')
 }
