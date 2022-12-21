@@ -33,7 +33,7 @@ const startPrompt = () => {
         type: 'list',
         name: 'doNext',
         message: 'What would you like to do?',
-        choices: ['View all Employees','View all Roles','View all Departments','View Employees by Manager', 'View Employees by Department', 'View Department Budget','Add Employees','Add Role',  'Add Department',  'Update Employee Role', 'Update Employee Managers',  'Delete Employee', 'Delete Role', 'Delete Department',  'Quit']
+        choices: ['View all Employees','View all Roles','View all Departments','View Employees by Manager', 'View Employees by Department', 'View Department Budget', 'Add Department', 'Add Employees','Add Role', 'Update Employee Role', 'Update Employee Managers',  'Delete Employee', 'Delete Role', 'Delete Department',  'Quit']
     }])
         .then((data) => { 
             //Deconstruct the prompt data to get the users choice
