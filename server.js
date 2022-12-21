@@ -33,7 +33,7 @@ const startPrompt = () => {
         type: 'list',
         name: 'doNext',
         message: 'What would you like to do?',
-        choices: ['View all Employees','View All Roles','View all Departments','View Employees by Manager', 'View Employees by Department', 'View Department Budget','Add Employees','Add Role',  'Add Department',  'Update Employee Role', 'Update Employee Managers',  'Delete Employee', 'Delete Role', 'Delete Department',  'Quit']
+        choices: ['View all Employees','View all Roles','View all Departments','View Employees by Manager', 'View Employees by Department', 'View Department Budget','Add Employees','Add Role',  'Add Department',  'Update Employee Role', 'Update Employee Managers',  'Delete Employee', 'Delete Role', 'Delete Department',  'Quit']
     }])
         .then((data) => { 
             //Deconstruct the prompt data to get the users choice
@@ -44,7 +44,7 @@ const startPrompt = () => {
                     viewEmployees();
                     break
                 }
-                case 'View All Roles': { 
+                case 'View all Roles': { 
                     viewRoles();
                     break
                 }
@@ -118,10 +118,11 @@ viewEmployees = () => {
   FROM employee employee
   INNER JOIN role role ON employee.role_id = role.id
   INNER JOIN department department ON role.department_id = department.id;`; 
+    
   
     connection.promise().query(sql)
         .then(([rows, fields]) => {
-        console.log(`\nThere are Currently ${rows.length} Employees\n`)
+        console.log(`\nThere are Currently ${rows.length} Employees assigned to a Role\n`)
             console.table(rows);
             startPrompt();
     })
@@ -223,7 +224,8 @@ viewRoles = () => {
     role.salary
   FROM employee employee
   INNER JOIN role role ON employee.role_id = role.id
-  INNER JOIN department department ON role.department_id = department.id;`; 
+  INNER JOIN department department ON role.department_id = department.id;`;
+
   
     connection.promise().query(viewRoleSQL)
         .then(([rows, fields]) => {
@@ -313,7 +315,6 @@ addDepartment = () => {
         });
 }
 //function to update an employees manager
-//todo code does not seem to be working 100% needs fixed
 updateEmployeeManager = () => { 
     const returnEmployeesSQL = `SELECT * FROM employee`;
     connection.promise().query(returnEmployeesSQL)
@@ -336,13 +337,13 @@ updateEmployeeManager = () => {
             }])
                 .then((data) => {
                     // Deconstruct the prompt data to get the users choice
-                    const { returnEmployee, returnManager } = data;
+                    const { updateEmployeeManager, selectNewManager } = data;
                     console.log(data)
                     //SQL to add an update the manager of an employee with ? to prevent sql injection
                     const updateManagerSQL = `UPDATE employee
                     SET manager_id = ?
                     WHERE id = ?;`;
-                    connection.promise().query(updateManagerSQL, [returnManager, returnEmployee])
+                    connection.promise().query(updateManagerSQL, [selectNewManager, updateEmployeeManager])
                         .then(() => {
                             console.log(`\nEmployee Role has be updated\n`);
                             startPrompt();
@@ -356,7 +357,7 @@ updateEmployeeManager = () => {
 //function to create a query that views employees by manager only
 viewEmployeesByManager = () => { 
     const viewEmployeesByManagerSQL = `SELECT e1.first_name AS employee_first_name, e1.last_name AS employee_last_name, 
-    e2.first_name AS manager_first_name, e2.last_name AS manager_last_name
+    e2.first_name AS manager_first_name, e2.last_name AS manager_last_name, e1.manager_id
 FROM employee e1
 JOIN employee e2 ON e1.manager_id = e2.id
 WHERE e1.manager_id IS NOT NULL;`; 
@@ -444,7 +445,35 @@ deleteRole = () => {
                 });
         });
  }
-
+//function to delete a department.
+deleteDepartment = () => {
+    const returnDepartmentsSQL = `SELECT * FROM Department`;
+    connection.promise().query(returnDepartmentsSQL)
+        .then(([rows, fields]) => {
+            //return information on the Departments
+            const returnDepartments = rows.map(({ id, name}) => ({ name: name, value: id }));
+            inquirer.prompt([{
+                type: 'list',
+                name: 'deleteDepartment',
+                message: 'Select the Department you would like to delete?',
+                choices: returnDepartments
+            },])
+                .then((data) => {
+                    // Deconstruct the prompt data to get the users choice
+                    const { deleteDepartment } = data;
+                    //SQL to add an update the Department of an employee with ? to prevent sql injection
+                    const deleteDepartmentSQL = `DELETE FROM department WHERE id = ?;`;
+                    connection.promise().query(deleteDepartmentSQL, [deleteDepartment])
+                        .then(() => {
+                            console.log(`\nDepartment has been Deleted\n`);
+                            startPrompt();
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                        });
+                });
+        });
+ }
 //function to view the department budget for a selected department.
 viewDepartmentBudget = () => { 
 
